@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+  # This allows the notes repo to trigger this workflow
+  repository_dispatch:
+    types: [submodule_updated]
 
 permissions:
   contents: read
@@ -17,8 +20,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          submodules: true
+          # This pulls the parent repo
           fetch-depth: 0
+
+      - name: Update Submodules to Latest
+        # This ignores the pinned hash and grabs the latest master/main branch 
+        # from your obsidian-site repo.
+        run: |
+          git submodule update --init --recursive --remote
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -38,4 +47,3 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}:latest
             ghcr.io/${{ github.repository }}:${{ github.sha }}
-
